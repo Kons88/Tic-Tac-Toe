@@ -6,12 +6,13 @@
   <title>Neon AI Tic-Tac-Toe</title>
   <style>
     :root {
-      --bg-dark: #050b1a;
-      --panel-bg: rgba(20, 30, 60, 0.4);
-      --neon-red: #ff3344;
-      --neon-red-glow: rgba(255, 51, 68, 0.6);
-      --neon-cyan: #00ffff;
-      --neon-cyan-glow: rgba(0, 255, 255, 0.6);
+     /* define variables for colour */
+      --bg-dark: #050b1a;                        /* main background colour */
+      --panel-bg: rgba(20, 30, 60, 0.4);         /* semi-transparent panel background for "glass effect" */
+      --neon-red: #ff3344;                       /* red used for "O" and when losing */
+      --neon-red-glow: rgba(255, 51, 68, 0.6);   /* red glow for shadows */
+      --neon-cyan: #00ffff;                      /* blue used for "X" and when winning */
+      --neon-cyan-glow: rgba(0, 255, 255, 0.6);  /* blue glow for shadows */
       --text-main: #ffffff;
       --text-muted: #8899bb;
     }
@@ -60,8 +61,8 @@
       display: flex;
       flex-direction: column;
       gap: 20px;
-      min-width: 220px;
-      order: 2;
+      min-width: 220px;   /* keeps the panel from getting too narrow or squashed */
+      order: 2;           /* panel goes on top of the grid (order:1) */
     }
 
     h2 { font-size: 13px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 2px; margin-bottom: 8px;}
@@ -91,7 +92,7 @@
       transform: translateY(-50%) scale(1.2);
     }
 
-    select {
+    select {               /* NO OS dropdown styling on any browsers */
       appearance: none;
       -webkit-appearance: none;
       -moz-appearance: none;
@@ -136,7 +137,7 @@
       font-size: 14px;
       outline: none;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.2s;     /* smooth hover transition */
     }
 
     button:hover { background: rgba(255, 255, 255, 0.1); }
@@ -182,7 +183,7 @@
       transition: all 0.2s;
       user-select: none;
     }
-    .cell:hover { background: #0c1833; }
+    .cell:hover { background: #0c1833; }   /* for show XD */
     .cell:focus-visible {
       outline: none;
       box-shadow: 0 0 0 3px var(--neon-cyan-glow);
@@ -213,6 +214,7 @@
     .status-lose { color: var(--neon-red); text-shadow: 0 0 15px var(--neon-red-glow); }
     .status-draw { color: var(--text-muted); }
 
+    /* Styles for mobiles and tablets */
     @media (max-width: 560px) {
       .header-title { font-size: 1.6rem; letter-spacing: 4px; }
       .game-wrapper { padding: 20px; gap: 20px; }
@@ -237,6 +239,7 @@
 
   <div class="game-wrapper">
 
+    <!-- button grid game board -->
     <div class="grid" id="grid" role="grid" aria-label="Tic-tac-toe board">
       <div class="cell" role="button" tabindex="0" aria-label="Cell 1" data-index="0"></div>
       <div class="cell" role="button" tabindex="0" aria-label="Cell 2" data-index="1"></div>
@@ -254,7 +257,7 @@
         <h2>Your Symbol</h2>
         <div class="select-wrapper">
           <select id="symbol-select">
-            <option value="X">X (Cyan)</option>
+            <option value="X">X (Blue)</option>
             <option value="O">O (Red)</option>
           </select>
         </div>
@@ -290,12 +293,13 @@
   </div>
 
   <script>
+    // Linearized gaming board: empty(""), full("X"/"O")
     let board = ["", "", "", "", "", "", "", "", ""];
     let humanSymbol = "X";
     let aiSymbol = "O";
-    let currentPlayer = "X";
+    let currentPlayer = "X";    // whose turn is it?
     let gameActive = false;
-    let difficulty = "unbeatable";
+    let difficulty = "unbeatable"; // default.
 
     const WINNING_COMBOS = [
       [0, 1, 2], [3, 4, 5], [6, 7, 8],
@@ -321,7 +325,7 @@
       difficulty = document.getElementById('difficulty-select').value;
       const goFirst = document.getElementById('order-select').value === "true";
 
-      board = ["", "", "", "", "", "", "", "", ""];
+      board = ["", "", "", "", "", "", "", "", ""];   // Initial board state, empty cells.
       gameActive = true;
       currentPlayer = goFirst ? humanSymbol : aiSymbol;
 
@@ -333,35 +337,40 @@
     }
 
     function handleCellClick(index) {
-      if (!gameActive || board[index] !== "" || currentPlayer !== humanSymbol) return;
+      // Ignore the click if: game isn't running, cell is already filled, or it's not the human's turn.
+      if (!gameActive || board[index] !== "" || currentPlayer !== humanSymbol) return; 
 
-      board[index] = humanSymbol;
+      board[index] = humanSymbol;   // Place the player's symbol at the clicked position.
       if (checkGameOver()) return;
 
-      currentPlayer = aiSymbol;
+      currentPlayer = aiSymbol;     // Switch turn to the AI.
       updateUI();
-      setTimeout(makeAIMove, 400);
+      setTimeout(makeAIMove, 400);  // Slight delay for AI move.
     }
 
+    // Search where the board is still empty.
     function getEmptyIndices(tempBoard) {
       return tempBoard.map((val, idx) => (val === "" ? idx : null)).filter(val => val !== null);
     }
 
     function makeAIMove() {
-      if (!gameActive) return;
+      if (!gameActive) return;   // Safety check: don't move if the game already ended.
       let bestIndex = null;
       const emptyIndices = getEmptyIndices(board);
 
+      // Easy Mode: pick a completely random empty cell.
       if (difficulty === "easy") {
         bestIndex = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+      // Medium: Random, 50/50 chance of playing minmax vs. a random move.
       } else if (difficulty === "medium") {
         bestIndex = Math.random() > 0.5 ? getBestMove() : emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+      // Unbeatable: Always plays through the minimax algorithm.
       } else {
         bestIndex = getBestMove();
       }
 
-      board[bestIndex] = aiSymbol;
-      if (checkGameOver()) return;
+      board[bestIndex] = aiSymbol;  // Place AI symbol.
+      if (checkGameOver()) return;  // Did the move end the game?
 
       currentPlayer = humanSymbol;
       updateUI();
@@ -412,24 +421,25 @@
       }
     }
 
-    function minimax(tempBoard, depth, isMaximizing) {
+    function minimax(tempBoard, depth, isMaximizing) {  // Here, depth = how many moves deep we are in the simulated game tree.
       const result = checkStatus(tempBoard);
-      if (result === aiSymbol) return 10 - depth;
-      if (result === humanSymbol) return depth - 10;
-      if (result === "Draw") return 0;
+      if (result === aiSymbol) return 10 - depth;    // AI winning? Goood. Subtracting depth favors winning sooner rather than later.
+      if (result === humanSymbol) return depth - 10; // Human winning? Bad.
+      if (result === "Draw") return 0;               // Draw? Meh.
 
-      if (isMaximizing) {
-        let bestScore = -Infinity;
+      if (isMaximizing) {              // AI seeks best possible score.
+        let bestScore = -Infinity;     // Worst possible score...
         for (let i = 0; i < 9; i++) {
           if (tempBoard[i] === "") {
-            tempBoard[i] = aiSymbol;
+            tempBoard[i] = aiSymbol;  // Hypothetical AI move to seek its score.
             bestScore = Math.max(minimax(tempBoard, depth + 1, false), bestScore);
-            tempBoard[i] = "";
+            tempBoard[i] = "";        // Undo the hypothetical AI move.
           }
         }
         return bestScore;
+      //Simulating Human's turn.
       } else {
-        let bestScore = Infinity;
+        let bestScore = Infinity;  // Worst score for AI.
         for (let i = 0; i < 9; i++) {
           if (tempBoard[i] === "") {
             tempBoard[i] = humanSymbol;
@@ -445,9 +455,9 @@
       let bestScore = -Infinity;
       let move = null;
       for (let i = 0; i < 9; i++) {
-        if (board[i] === "") {
-          board[i] = aiSymbol;
-          let score = minimax(board, 0, false);
+        if (board[i] === "") {                    // Only try empty cells.
+          board[i] = aiSymbol;                    // It's temp again.
+          let score = minimax(board, 0, false);   // Evaluate how good this move is, the score using minmax above.
           board[i] = "";
           if (score > bestScore) {
             bestScore = score;
