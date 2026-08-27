@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Neon AI Tic-Tac-Toe</title>
+  <style>
+    :root {
+      --bg-dark: #050b1a;
+      --panel-bg: rgba(20, 30, 60, 0.4);
+      --neon-red: #ff3344;
+      --neon-red-glow: rgba(255, 51, 68, 0.6);
+      --neon-cyan: #00ffff;
+      --neon-cyan-glow: rgba(0, 255, 255, 0.6);
+      --text-main: #ffffff;
+      --text-muted: #8899bb;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+    body {
+      background: radial-gradient(circle at center, #0d1e3d 0%, var(--bg-dark) 80%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .header-title {
+      font-size: 2.5rem;
+      font-weight: 300;
+      text-transform: uppercase;
+      letter-spacing: 8px;
+      margin-bottom: 2rem;
+      color: var(--text-main);
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.3),
+                   0 0 20px var(--neon-cyan-glow);
+      text-align: center;
+    }
+
+    .game-wrapper {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      background: var(--panel-bg);
+      padding: 40px;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      max-width: 90vw;
+    }
+
+    .side-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      min-width: 220px;
+      order: 2;
+    }
+
+    h2 { font-size: 13px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 2px; margin-bottom: 8px;}
+
+    .select-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .select-wrapper::after {
+      content: '';
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 6px solid var(--neon-cyan);
+      pointer-events: none;
+      transition: transform 0.2s ease, border-top-color 0.2s;
+    }
+
+    .select-wrapper:hover::after {
+      border-top-color: #ffffff;
+      transform: translateY(-50%) scale(1.2);
+    }
+
+    select {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      width: 100%;
+      background: rgba(8, 16, 34, 0.8);
+      color: var(--text-main);
+      border: 1px solid rgba(0, 255, 255, 0.3);
+      padding: 12px 40px 12px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      outline: none;
+      cursor: pointer;
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+      transition: all 0.3s ease;
+    }
+
+    select:hover {
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 12px var(--neon-cyan-glow), inset 0 0 8px rgba(0, 255, 255, 0.2);
+      background: rgba(12, 24, 51, 0.9);
+    }
+
+    select:focus {
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 18px var(--neon-cyan-glow);
+    }
+
+    select option {
+      background-color: #081022;
+      color: var(--text-main);
+      padding: 12px;
+      font-size: 14px;
+    }
+
+    button {
+      background: rgba(0, 0, 0, 0.3);
+      color: var(--text-main);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 12px 15px;
+      border-radius: 10px;
+      font-size: 14px;
+      outline: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    button:hover { background: rgba(255, 255, 255, 0.1); }
+    button:focus-visible {
+      box-shadow: 0 0 0 3px var(--neon-cyan-glow);
+    }
+    .btn-primary {
+      background: rgba(0, 255, 255, 0.1);
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: bold;
+      margin-top: 5px;
+    }
+    .btn-primary:hover {
+      background: var(--neon-cyan);
+      color: #000;
+      box-shadow: 0 0 18px var(--neon-cyan-glow);
+    }
+
+    .grid {
+      order: 1;
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-template-rows: repeat(3, 100px);
+      gap: 15px;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 15px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      position: relative;
+    }
+
+    .cell {
+      background: #081022;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .cell:hover { background: #0c1833; }
+    .cell:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--neon-cyan-glow);
+      background: #0c1833;
+    }
+
+    .cell.x { color: var(--neon-cyan); text-shadow: 0 0 15px var(--neon-cyan-glow); }
+    .cell.o { color: var(--neon-red); text-shadow: 0 0 15px var(--neon-red-glow); }
+
+    #game-over-panel {
+      display: none;
+      text-align: center;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 220px;
+      order: 2;
+    }
+
+    .status-title {
+      font-size: 32px;
+      font-weight: 300;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      margin-bottom: 10px;
+    }
+
+    .status-win { color: var(--neon-cyan); text-shadow: 0 0 15px var(--neon-cyan-glow); }
+    .status-lose { color: var(--neon-red); text-shadow: 0 0 15px var(--neon-red-glow); }
+    .status-draw { color: var(--text-muted); }
+
+    @media (max-width: 560px) {
+      .header-title { font-size: 1.6rem; letter-spacing: 4px; }
+      .game-wrapper { padding: 20px; gap: 20px; }
+      .grid {
+        grid-template-columns: repeat(3, 80px);
+        grid-template-rows: repeat(3, 80px);
+        gap: 10px;
+        order: 1;
+      }
+      .cell { font-size: 2.2rem; }
+      .side-panel, #game-over-panel {
+        order: 2;
+        min-width: 0;
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1 class="header-title">Neon Tic-Tac-Toe</h1>
+
+  <div class="game-wrapper">
+
+    <div class="grid" id="grid" role="grid" aria-label="Tic-tac-toe board">
+      <div class="cell" role="button" tabindex="0" aria-label="Cell 1" data-index="0"></div>
+      <div class="cell" role="button" tabindex="0" aria-label="Cell 2" data-index="1"></div>
+      <div class="cell" role="button" tabindex="0" aria-label="Cell 3" data-index="2"></div>
+      <div class="cell" role="button" tabindex="0" aria-label="Cell 4" data-index="3"></div>
+      <div class="cell" role="button" tabindex="0" aria-label="Cell 5" data-index="4"></div>
+      <div class="cell" role="button" tabindex="0" aria-label="Cell 6" data-index="5"></div>
+      <div class="cell" role="button" tabindex="0" aria-label="Cell 7" data-index="6"></div>
+      <div class="cell" role="button" tabindex="0" aria-label="Cell 8" data-index="7"></div>
+      <div class="cell" role="button" tabindex="0" aria-label="Cell 9" data-index="8"></div>
+    </div>
+
+    <div class="side-panel" id="config-panel">
+      <div>
+        <h2>Your Symbol</h2>
+        <div class="select-wrapper">
+          <select id="symbol-select">
+            <option value="X">X (Cyan)</option>
+            <option value="O">O (Red)</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <h2>Who goes first?</h2>
+        <div class="select-wrapper">
+          <select id="order-select">
+            <option value="true">You</option>
+            <option value="false">AI</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <h2>Difficulty</h2>
+        <div class="select-wrapper">
+          <select id="difficulty-select">
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="unbeatable" selected>Unbeatable</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="startGame()">Start Game</button>
+    </div>
+
+    <div class="side-panel" id="game-over-panel">
+      <div class="status-title" id="status-title">GAME OVER</div>
+      <h2 id="status-subtitle">Try Again?</h2>
+      <button class="btn-primary" onclick="startGame()">Play Again</button>
+    </div>
+
+  </div>
+
+  <script>
+    let board = ["", "", "", "", "", "", "", "", ""];
+    let humanSymbol = "X";
+    let aiSymbol = "O";
+    let currentPlayer = "X";
+    let gameActive = false;
+    let difficulty = "unbeatable";
+
+    const WINNING_COMBOS = [
+      [0, 1, 2], [3, 4, 5], [6, 7, 8],
+      [0, 3, 6], [1, 4, 7], [2, 5, 8],
+      [0, 4, 8], [2, 4, 6]
+    ];
+
+    const cellEls = document.querySelectorAll('.cell');
+    cellEls.forEach(cell => {
+      const index = Number(cell.dataset.index);
+      cell.addEventListener('click', () => handleCellClick(index));
+      cell.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleCellClick(index);
+        }
+      });
+    });
+
+    function startGame() {
+      humanSymbol = document.getElementById('symbol-select').value;
+      aiSymbol = humanSymbol === "X" ? "O" : "X";
+      difficulty = document.getElementById('difficulty-select').value;
+      const goFirst = document.getElementById('order-select').value === "true";
+
+      board = ["", "", "", "", "", "", "", "", ""];
+      gameActive = true;
+      currentPlayer = goFirst ? humanSymbol : aiSymbol;
+
+      document.getElementById('game-over-panel').style.display = 'none';
+      document.getElementById('config-panel').style.display = 'flex';
+      updateUI();
+
+      if (!goFirst) setTimeout(makeAIMove, 400);
+    }
+
+    function handleCellClick(index) {
+      if (!gameActive || board[index] !== "" || currentPlayer !== humanSymbol) return;
+
+      board[index] = humanSymbol;
+      if (checkGameOver()) return;
+
+      currentPlayer = aiSymbol;
+      updateUI();
+      setTimeout(makeAIMove, 400);
+    }
+
+    function getEmptyIndices(tempBoard) {
+      return tempBoard.map((val, idx) => (val === "" ? idx : null)).filter(val => val !== null);
+    }
+
+    function makeAIMove() {
+      if (!gameActive) return;
+      let bestIndex = null;
+      const emptyIndices = getEmptyIndices(board);
+
+      if (difficulty === "easy") {
+        bestIndex = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+      } else if (difficulty === "medium") {
+        bestIndex = Math.random() > 0.5 ? getBestMove() : emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+      } else {
+        bestIndex = getBestMove();
+      }
+
+      board[bestIndex] = aiSymbol;
+      if (checkGameOver()) return;
+
+      currentPlayer = humanSymbol;
+      updateUI();
+    }
+
+    function checkStatus(currentBoard) {
+      for (let combo of WINNING_COMBOS) {
+        const [a, b, c] = combo;
+        if (currentBoard[a] && currentBoard[a] === currentBoard[b] && currentBoard[a] === currentBoard[c]) {
+          return currentBoard[a];
+        }
+      }
+      return currentBoard.includes("") ? null : "Draw";
+    }
+
+    function checkGameOver() {
+      const result = checkStatus(board);
+      if (result) {
+        gameActive = false;
+        updateUI();
+        showGameOver(result);
+        return true;
+      }
+      return false;
+    }
+
+    function showGameOver(result) {
+      const panel = document.getElementById('game-over-panel');
+      const title = document.getElementById('status-title');
+      const subtitle = document.getElementById('status-subtitle');
+
+      document.getElementById('config-panel').style.display = 'none';
+      panel.style.display = 'flex';
+      title.className = 'status-title';
+
+      if (result === "Draw") {
+        title.innerText = "DRAW";
+        title.classList.add('status-draw');
+        subtitle.innerText = "No one wins";
+      } else if (result === humanSymbol) {
+        title.innerText = "YOU WIN!";
+        title.classList.add('status-win');
+        subtitle.innerText = "Humanity prevails";
+      } else {
+        title.innerText = "DEFEAT";
+        title.classList.add('status-lose');
+        subtitle.innerText = "AI remains supreme";
+      }
+    }
+
+    function minimax(tempBoard, depth, isMaximizing) {
+      const result = checkStatus(tempBoard);
+      if (result === aiSymbol) return 10 - depth;
+      if (result === humanSymbol) return depth - 10;
+      if (result === "Draw") return 0;
+
+      if (isMaximizing) {
+        let bestScore = -Infinity;
+        for (let i = 0; i < 9; i++) {
+          if (tempBoard[i] === "") {
+            tempBoard[i] = aiSymbol;
+            bestScore = Math.max(minimax(tempBoard, depth + 1, false), bestScore);
+            tempBoard[i] = "";
+          }
+        }
+        return bestScore;
+      } else {
+        let bestScore = Infinity;
+        for (let i = 0; i < 9; i++) {
+          if (tempBoard[i] === "") {
+            tempBoard[i] = humanSymbol;
+            bestScore = Math.min(minimax(tempBoard, depth + 1, true), bestScore);
+            tempBoard[i] = "";
+          }
+        }
+        return bestScore;
+      }
+    }
+
+    function getBestMove() {
+      let bestScore = -Infinity;
+      let move = null;
+      for (let i = 0; i < 9; i++) {
+        if (board[i] === "") {
+          board[i] = aiSymbol;
+          let score = minimax(board, 0, false);
+          board[i] = "";
+          if (score > bestScore) {
+            bestScore = score;
+            move = i;
+          }
+        }
+      }
+      return move;
+    }
+
+    function updateUI() {
+      cellEls.forEach((cell, i) => {
+        const val = board[i];
+        cell.innerText = val;
+        cell.className = `cell ${val.toLowerCase()}`;
+        cell.setAttribute('aria-label', val ? `Cell ${i + 1}: ${val}` : `Cell ${i + 1}, empty`);
+      });
+    }
+  </script>
+</body>
+</html>
