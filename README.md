@@ -1,7 +1,7 @@
 #  Neon Tic-Tac-Toe
 
 <p align="center">
-  <img src="assets/poster.png" alt="Neon Tic-Tac-Toe Poster" width="700">
+  <img src="poster.png" alt="Neon Tic-Tac-Toe Poster" width="700">
 </p>
 
 AI VS YOU, WHO WILL WIN?
